@@ -48,7 +48,7 @@ export default function InterestMap() {
   const [selAxes,    setSelAxes]    = useState([0, 1]);
   const [plotW,      setPlotW]      = useState(0);
   const [selected,   setSelected]   = useState<Interest | null>(null);
-  const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set(['Music', 'Professional']));
+  const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set(['Art', 'Professional', 'Puzzles']));
   const [zoom,       setZoom]       = useState(1);
   const [pan,        setPan]        = useState({ x: 0, y: 0 });
 
@@ -58,7 +58,7 @@ export default function InterestMap() {
   const axisX = AXES[selAxes[0]];
   const axisY = is2D ? AXES[selAxes[1]] : null;
   const plotH = plotW;
-  const showLbls = activeCats.size <= 3;
+  const showLbls = activeCats.size <= 4;
 
   // One Animated.ValueXY per dot — stable refs, never recreated
   const dotPos = useRef(NOISY.map(() => new Animated.ValueXY())).current;
