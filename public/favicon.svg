@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- indigo background -->
+  <rect width="32" height="32" fill="#18083E"/>
+  <!-- crosshair -->
+  <line x1="16" y1="3"  x2="16" y2="29" stroke="#FFFFFF" stroke-width="0.5" opacity="0.22"/>
+  <line x1="3"  y1="16" x2="29" y2="16" stroke="#FFFFFF" stroke-width="0.5" opacity="0.22"/>
+  <!-- scatter dots in palette colors -->
+  <circle cx="9"  cy="9"  r="2.5" fill="#A8FF3D"/>
+  <circle cx="23" cy="8"  r="2"   fill="#FF007A"/>
+  <circle cx="7"  cy="23" r="2"   fill="#FF4D00"/>
+  <circle cx="23" cy="23" r="2.5" fill="#A8FF3D"/>
+  <circle cx="14" cy="13" r="1.5" fill="#FF007A"/>
+  <circle cx="25" cy="17" r="1.5" fill="#FF4D00"/>
+  <circle cx="19" cy="20" r="1.5" fill="#48CAE4"/>
+  <circle cx="11" cy="18" r="1.5" fill="#48CAE4"/>
+</svg>

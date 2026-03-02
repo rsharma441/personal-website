@@ -7,6 +7,7 @@ import {
   LayoutChangeEvent,
   Animated,
   Modal,
+  GestureResponderEvent,
 } from 'react-native';
 import { P } from '@/constants/Palette';
 import { INTERESTS, CATEGORY_COLORS, Interest } from '@/constants/interests';
@@ -19,10 +20,12 @@ const AXES = [
 ];
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const DOT_R  = 4;
-const PAD    = 28;
-const CENTER = 5;   // score value → plot center (the zero line)
-const RANGE  = 5;   // half-range: scores 1–10 → −4 to +5 about center
+const DOT_R    = 4;
+const PAD      = 28;
+const CENTER   = 5;      // score value → plot center (the zero line)
+const RANGE    = 5;      // half-range: scores 1–10 → −4 to +5 about center
+const ZOOM_STEP = 1.5;
+const ZOOM_MAX  = 4;
 const ALL_CATS = Object.keys(CATEGORY_COLORS);
 
 // ── Deterministic decimal noise ───────────────────────────────────────────────
@@ -46,6 +49,10 @@ export default function InterestMap() {
   const [plotW,      setPlotW]      = useState(0);
   const [selected,   setSelected]   = useState<Interest | null>(null);
   const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set(['Music', 'Professional']));
+  const [zoom,       setZoom]       = useState(1);
+  const [pan,        setPan]        = useState({ x: 0, y: 0 });
+
+  const lastTapRef = useRef<{ t: number } | null>(null);
 
   const is2D  = selAxes.length === 2;
   const axisX = AXES[selAxes[0]];
@@ -57,20 +64,19 @@ export default function InterestMap() {
   const dotPos = useRef(NOISY.map(() => new Animated.ValueXY())).current;
   const hasInit = useRef(false);
 
-  // ── 4-quadrant coordinate helpers ──────────────────────────────────────────
+  // ── Coordinate helpers (zoom + pan aware) ────────────────────────────────
   function cx(score: number): number {
     const half = (plotW - PAD * 2) / 2;
-    return plotW / 2 + ((score - CENTER) / RANGE) * half;
+    return plotW / 2 + pan.x + ((score - CENTER) / RANGE) * half * zoom;
   }
   function cy(score: number): number {
     const half = (plotH - PAD * 2) / 2;
-    return plotH / 2 - ((score - CENTER) / RANGE) * half;
+    return plotH / 2 + pan.y - ((score - CENTER) / RANGE) * half * zoom;
   }
-  // In 1D mode dots spread vertically around the horizontal center line
   function cy1D(idx: number): number {
     const lane = idx % 9;
     const half = (plotH - PAD * 2) / 2;
-    return plotH / 2 + (lane / 8 - 0.5) * half * 0.65;
+    return plotH / 2 + pan.y + (lane / 8 - 0.5) * half * 0.65 * zoom;
   }
 
   function computeTargets() {
@@ -80,7 +86,7 @@ export default function InterestMap() {
     }));
   }
 
-  // ── Animate dots to new positions (or snap on first layout) ────────────────
+  // ── Animate dots to new positions (or snap on first layout) ──────────────
   useEffect(() => {
     if (plotW === 0) return;
     const T = computeTargets();
@@ -97,9 +103,48 @@ export default function InterestMap() {
         ])
       )
     ).start();
-  }, [plotW, selAxes]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [plotW, selAxes, zoom, pan.x, pan.y]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Axis toggle ─────────────────────────────────────────────────────────────
+  // ── Zoom helpers ──────────────────────────────────────────────────────────
+  function zoomReset() {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  }
+
+  function zoomAt(factor: number, px: number, py: number) {
+    const newZoom = Math.min(ZOOM_MAX, Math.max(1, zoom * factor));
+    const actualFactor = newZoom / zoom;
+    setPan(prev => ({
+      x: (px - plotW / 2) * (1 - actualFactor) + prev.x * actualFactor,
+      y: (py - plotH / 2) * (1 - actualFactor) + prev.y * actualFactor,
+    }));
+    setZoom(newZoom);
+  }
+
+  function handleZoomOut() {
+    if (zoom / ZOOM_STEP <= 1) {
+      zoomReset();
+    } else {
+      zoomAt(1 / ZOOM_STEP, plotW / 2, plotH / 2);
+    }
+  }
+
+  // ── Double-tap background → zoom in (or reset when zoomed in far) ─────────
+  function handleBgPress(e: GestureResponderEvent) {
+    const now = Date.now();
+    if (lastTapRef.current && now - lastTapRef.current.t < 300) {
+      lastTapRef.current = null;
+      if (zoom >= 3) {
+        zoomReset();
+      } else {
+        zoomAt(2, e.nativeEvent.locationX, e.nativeEvent.locationY);
+      }
+    } else {
+      lastTapRef.current = { t: now };
+    }
+  }
+
+  // ── Axis toggle ───────────────────────────────────────────────────────────
   function toggleAxis(i: number) {
     let next: number[];
     if (selAxes.includes(i)) {
@@ -111,7 +156,7 @@ export default function InterestMap() {
     setSelAxes(next);
   }
 
-  // ── Category filter ─────────────────────────────────────────────────────────
+  // ── Category filter ───────────────────────────────────────────────────────
   function toggleCat(cat: string) {
     setActiveCats(prev => {
       const next = new Set(prev);
@@ -120,7 +165,7 @@ export default function InterestMap() {
     });
   }
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <View style={s.root}>
       <Text style={s.sectionLabel}>// INTEREST MAP</Text>
@@ -166,24 +211,27 @@ export default function InterestMap() {
         })}
       </View>
 
-      {/* Square plot — fixed size */}
+      {/* Square plot */}
       <View
         style={s.plotOuter}
         onLayout={(e: LayoutChangeEvent) => setPlotW(e.nativeEvent.layout.width)}
       >
         {plotW > 0 && (
           <Animated.View style={StyleSheet.absoluteFillObject}>
+            {/* Background — captures double-tap for zoom (rendered first = behind dots) */}
+            <Pressable style={StyleSheet.absoluteFillObject} onPress={handleBgPress} />
+
             {/* 4-quadrant crosshair */}
-            <View style={[s.crossLine, { top: plotH / 2, left: PAD, right: PAD, height: 1 }]} />
-            <View style={[s.crossLine, { left: plotW / 2, top: PAD, bottom: PAD, width: 1 }]} />
+            <View style={[s.crossLine, { top: plotH / 2 + pan.y, left: PAD, right: PAD, height: 1 }]} />
+            <View style={[s.crossLine, { left: plotW / 2 + pan.x, top: PAD, bottom: PAD, width: 1 }]} />
 
             {/* Axis endpoint labels */}
-            <Text style={[s.endLabel, { top: plotH / 2 + 5, left: PAD }]}>{axisX.low}</Text>
-            <Text style={[s.endLabel, { top: plotH / 2 + 5, right: PAD }]}>{axisX.high}</Text>
+            <Text style={[s.endLabel, { top: plotH / 2 + pan.y + 5, left: PAD }]}>{axisX.low}</Text>
+            <Text style={[s.endLabel, { top: plotH / 2 + pan.y + 5, right: PAD }]}>{axisX.high}</Text>
             {is2D && axisY && (
               <>
-                <Text style={[s.endLabel, { top: PAD,      left: plotW / 2 + 5 }]}>{axisY.high}</Text>
-                <Text style={[s.endLabel, { bottom: PAD,   left: plotW / 2 + 5 }]}>{axisY.low}</Text>
+                <Text style={[s.endLabel, { top: PAD,      left: plotW / 2 + pan.x + 5 }]}>{axisY.high}</Text>
+                <Text style={[s.endLabel, { bottom: PAD,   left: plotW / 2 + pan.x + 5 }]}>{axisY.low}</Text>
               </>
             )}
 
@@ -223,6 +271,29 @@ export default function InterestMap() {
                 </Animated.View>
               );
             })}
+
+            {/* Zoom controls — bottom-right overlay */}
+            <View style={s.zoomControls}>
+              <Pressable
+                onPress={() => zoomAt(ZOOM_STEP, plotW / 2, plotH / 2)}
+                disabled={zoom >= ZOOM_MAX}
+                style={[s.zoomBtn, zoom >= ZOOM_MAX && s.zoomBtnDisabled]}
+              >
+                <Text style={[s.zoomBtnTxt, zoom >= ZOOM_MAX && s.zoomBtnTxtDisabled]}>+</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleZoomOut}
+                disabled={zoom <= 1}
+                style={[s.zoomBtn, zoom <= 1 && s.zoomBtnDisabled]}
+              >
+                <Text style={[s.zoomBtnTxt, zoom <= 1 && s.zoomBtnTxtDisabled]}>−</Text>
+              </Pressable>
+            </View>
+
+            {/* Hint — only at default zoom */}
+            {zoom === 1 && (
+              <Text style={s.zoomHint}>DBL TAP TO ZOOM</Text>
+            )}
           </Animated.View>
         )}
       </View>
@@ -311,6 +382,48 @@ const s = StyleSheet.create({
     fontSize: 7,
     maxWidth: 120,
     letterSpacing: 0.3,
+  },
+
+  // Zoom controls
+  zoomControls: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    flexDirection: 'row',
+    gap: 4,
+    zIndex: 20,
+  },
+  zoomBtn: {
+    width: 26,
+    height: 26,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: 'rgba(24,8,62,0.85)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  zoomBtnDisabled: {
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  zoomBtnTxt: {
+    fontFamily: 'SpaceMono',
+    fontSize: 14,
+    color: P.white,
+    lineHeight: 18,
+  },
+  zoomBtnTxtDisabled: {
+    color: 'rgba(255,255,255,0.2)',
+  },
+  zoomHint: {
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontFamily: 'SpaceMono',
+    fontSize: 7,
+    color: 'rgba(255,255,255,0.18)',
+    letterSpacing: 1.5,
   },
 
   // Category filter
