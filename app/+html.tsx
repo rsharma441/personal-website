@@ -22,6 +22,12 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" type="image/png" href="/favicon.png" />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+          integrity="sha384-GvrOXuhMATgEsSwCs4sm5uE9lXNVF9Fg6GJJ2baWqnOnK9jZ/QHgnTCffQHIn7Bn"
+          crossOrigin="anonymous"
+        />
       </head>
       <body>{children}</body>
     </html>

@@ -2,6 +2,7 @@ import { StyleSheet, View, Text, Linking, Pressable, ScrollView } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { P } from '@/constants/Palette';
+import { useRouter } from 'expo-router';
 
 type LinkItem = {
   index: string;
@@ -10,6 +11,7 @@ type LinkItem = {
   url: string;
   color: string;
   icon: React.ComponentProps<typeof Ionicons>['name'];
+  isInternal?: boolean;
 };
 
 // ── Link data ──────────────────────────────────────────────────────────────────
@@ -21,12 +23,22 @@ const L: Record<string, LinkItem> = {
   blog:     { index: '05', label: 'BLOG',           sublabel: 'THOUGHTS & RANDOMNESS',   url: 'https://substack.com/@rsharma441',                                                    color: P.pink,   icon: 'newspaper-outline'    },
   resume:   { index: '06', label: 'RESUME',         sublabel: 'CV & EXPERIENCE',         url: 'https://drive.google.com/file/d/1VdF8xls2-GP77NrnDk3TpNE6dND8i9hI/view?usp=sharing', color: P.pink,   icon: 'document-text-outline'}, 
   music:    { index: '07', label: 'MUSIC REVIEWS',  sublabel: 'MUSICAL THOUGHTS',        url: 'https://rsharma441.github.io/',                                                   color: P.white,  icon: 'musical-notes-outline'},
+  sample:   { index: '08', label: 'ADAPTIVE LOCAL FLOW IDEA',    sublabel: 'ECONOMIC MUSINGS',        url: '/posts/adaptive-local-flow',                                                                  color: P.lime,   icon: 'book-outline', isInternal: true },
 };
 
 // ── Hero card (full-width) ─────────────────────────────────────────────────────
 function HeroCard({ link }: { link: LinkItem }) {
+  const router = useRouter();
+  const onPress = () => {
+    if (link.isInternal) {
+      router.push(link.url as any);
+    } else {
+      Linking.openURL(link.url);
+    }
+  };
+
   return (
-    <Pressable onPress={() => Linking.openURL(link.url)}>
+    <Pressable onPress={onPress}>
       {({ pressed }) => (
         <View style={[s.hero, { borderColor: link.color }, pressed && { backgroundColor: link.color }]}>
           {/* Giant watermark index */}
@@ -57,8 +69,17 @@ function HeroCard({ link }: { link: LinkItem }) {
 
 // ── Compact card (half-width in a pair) ───────────────────────────────────────
 function CompactCard({ link }: { link: LinkItem }) {
+  const router = useRouter();
+  const onPress = () => {
+    if (link.isInternal) {
+      router.push(link.url as any);
+    } else {
+      Linking.openURL(link.url);
+    }
+  };
+
   return (
-    <Pressable style={s.compactOuter} onPress={() => Linking.openURL(link.url)}>
+    <Pressable style={s.compactOuter} onPress={onPress}>
       {({ pressed }) => (
         <View style={[s.compact, { borderColor: link.color }, pressed && { backgroundColor: link.color }]}>
           <Text style={[s.watermark, { color: pressed ? P.indigo : link.color }]}>
@@ -115,6 +136,9 @@ export default function LinksScreen() {
 
           {/* 07 Music Reviews — hero */}
           <HeroCard link={L.music} />
+
+          {/* 08 Sample Post — hero */}
+          <HeroCard link={L.sample} />
 
         </View>
       </ScrollView>
