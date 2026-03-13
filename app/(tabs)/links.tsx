@@ -23,7 +23,7 @@ const L: Record<string, LinkItem> = {
   blog:     { index: '05', label: 'BLOG',           sublabel: 'THOUGHTS & RANDOMNESS',   url: 'https://substack.com/@rsharma441',                                                    color: P.pink,   icon: 'newspaper-outline'    },
   resume:   { index: '06', label: 'RESUME',         sublabel: 'CV & EXPERIENCE',         url: 'https://drive.google.com/file/d/1VdF8xls2-GP77NrnDk3TpNE6dND8i9hI/view?usp=sharing', color: P.pink,   icon: 'document-text-outline'}, 
   music:    { index: '07', label: 'MUSIC REVIEWS',  sublabel: 'MUSICAL THOUGHTS',        url: 'https://rsharma441.github.io/',                                                   color: P.white,  icon: 'musical-notes-outline'},
-  sample:   { index: '08', label: 'ADAPTIVE LOCAL FLOW IDEA',    sublabel: 'ECONOMIC MUSINGS',        url: '/posts/adaptive-local-flow',                                                                  color: P.lime,   icon: 'book-outline', isInternal: true },
+  sample:   { index: '08', label: 'CIRCULATION-INCENTIVIZED REGIONAL CURRENCY (CIRC)',    sublabel: 'ECONOMIC MUSINGS',        url: '/posts/circ',                                                                  color: P.lime,   icon: 'book-outline', isInternal: true },
 };
 
 // ── Hero card (full-width) ─────────────────────────────────────────────────────

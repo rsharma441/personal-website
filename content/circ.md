@@ -1,4 +1,4 @@
-# Adaptive Local Flow Currency
+# Circulation-Incentivized Regional Currency (CIRC)
 
 ### A Self-Optimizing Economic System for Local Circulation and Anti-Stagnation
 
