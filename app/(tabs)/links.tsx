@@ -21,7 +21,7 @@ const L: Record<string, LinkItem> = {
   email:    { index: '03', label: 'EMAIL',          sublabel: 'SAY HELLO',               url: 'mailto:rsharma441@gmail.com',                                                         color: P.white,  icon: 'mail-outline'         },
   research: { index: '04', label: 'RESEARCH',       sublabel: 'PUBLICATIONS & WRITING',  url: 'https://aclanthology.org/P18-2119.pdf',                                               color: P.lime,   icon: 'library-outline'      },
   blog:     { index: '05', label: 'BLOG',           sublabel: 'THOUGHTS & RANDOMNESS',   url: 'https://substack.com/@rsharma441',                                                    color: P.pink,   icon: 'newspaper-outline'    },
-  resume:   { index: '06', label: 'RESUME',         sublabel: 'CV & EXPERIENCE',         url: 'https://drive.google.com/file/d/1VdF8xls2-GP77NrnDk3TpNE6dND8i9hI/view?usp=sharing', color: P.pink,   icon: 'document-text-outline'}, 
+  resume:   { index: '06', label: 'RESUME',         sublabel: 'CV & EXPERIENCE',         url: 'https://drive.google.com/file/d/1IFWBOcS02P-0knupcAbqc6CfV0mVaoBU/view?usp=sharing', color: P.pink,   icon: 'document-text-outline'}, 
   music:    { index: '07', label: 'MUSIC REVIEWS',  sublabel: 'MUSICAL THOUGHTS',        url: 'https://rsharma441.github.io/',                                                   color: P.white,  icon: 'musical-notes-outline'},
   sample:   { index: '08', label: 'CIRCULATION-INCENTIVIZED REGIONAL CURRENCY (CIRC)',    sublabel: 'ECONOMIC MUSINGS',        url: '/posts/circ',                                                                  color: P.lime,   icon: 'book-outline', isInternal: true },
 };
